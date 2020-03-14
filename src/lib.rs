@@ -5,7 +5,8 @@ extern crate quick_error;
 
 use std::borrow::Cow;
 
-pub use indexmap::IndexMap;
+pub use indexmap;
+use indexmap::IndexMap;
 use regex::{Regex, RegexBuilder};
 
 quick_error! {

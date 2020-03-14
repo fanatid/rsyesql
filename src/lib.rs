@@ -23,6 +23,7 @@ quick_error! {
 
 #[derive(Debug, PartialEq)]
 enum LineType {
+    Empty,
     Tag,
     Query,
 }
@@ -40,6 +41,7 @@ pub fn parse(text: &str) -> Result<IndexMap<String, String>, ParseError> {
 
         let (ty, value) = parse_line(line);
         match ty {
+            LineType::Empty => continue,
             LineType::Tag => {
                 if last_type.is_some() && last_type.as_ref().unwrap() == &LineType::Tag {
                     return Err(ParseError::TagOverwritten(idx + 1, value.to_owned()));
@@ -106,7 +108,12 @@ fn parse_line(mut line: &str) -> (LineType, &str) {
                 line = line.get(0..idx).unwrap();
             };
 
-            (LineType::Query, line.trim())
+            line = line.trim();
+            if line.is_empty() {
+                (LineType::Empty, line)
+            } else {
+                (LineType::Query, line)
+            }
         }
     }
 }
@@ -135,7 +142,7 @@ mod tests {
 
     #[test]
     fn parse_text() {
-        let text = "--name: x\nselect 2;";
+        let text = "-- just comment\n--name: x\nselect 2;";
         let mut queries = IndexMap::new();
         queries.insert("x".to_owned(), "select 2;".to_owned());
         assert_eq!(parse(text).ok(), Some(queries));

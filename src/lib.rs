@@ -73,7 +73,6 @@ pub fn parse(text: &str) -> Result<IndexMap<String, String>, ParseError> {
 // Preserve newlines for better error messages.
 fn remove_multi_line_comments(text: &str) -> Cow<'_, str> {
     lazy_static! {
-        // RegexBuilder::new(r#"(/\*(?:[^*][^/])*?.?\*/)"#)
         static ref RE: Regex = RegexBuilder::new(r#"(/\*.*?\*/)"#)
             .multi_line(true)
             .dot_matches_new_line(true)

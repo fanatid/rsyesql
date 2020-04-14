@@ -1,5 +1,9 @@
 # rsyesql
 
+[![crates.io](https://img.shields.io/crates/v/rsyesql.svg)](https://crates.io/crates/rsyesql)
+[![docs.rs](https://docs.rs/rsyesql/badge.svg)](https://docs.rs/rsyesql)
+[![ci](https://github.com/fanatid/rsyesql/workflows/ci/badge.svg)](https://github.com/fanatid/rsyesql/actions?query=workflow%3Aci)
+
 Inspired by [Yesql](https://github.com/krisajenkins/yesql), see [rational section](https://github.com/krisajenkins/yesql#rationale) there for more info.
 
 ### Usage

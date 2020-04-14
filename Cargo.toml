@@ -3,16 +3,23 @@ name = "rsyesql"
 version = "0.2.1"
 authors = ["Kirill Fomichev <fanatid@ya.ru>"]
 edition = "2018"
-license = "MIT"
-readme = "README.md"
-repository = "https://github.com/fanatid/rsyesql"
 description = """
 Transform SQL queries text to Rust strings.
 """
-categories = ["database"]
+documentation = "https://docs.rs/rsyesql/"
+readme = "README.md"
+repository = "https://github.com/fanatid/rsyesql"
+license = "MIT"
 keywords = ["sql", "yesql"]
+categories = ["database"]
+include = [
+    "src/*.rs",
+    "LICENSE",
+    "README.md",
+]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[badges]
+github = { repository = "fanatid/rsyesql", workflow = "ci" }
 
 [dependencies]
 indexmap = "1.3.2"

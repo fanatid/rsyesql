@@ -1,3 +1,7 @@
+//! Parse SQL queries as text to [IndexMap] (`tag` => `query`).
+//!
+//! Inspired by [github.com/krisajenkins/yesql](https://github.com/krisajenkins/yesql). This is Rust port with additional features.
+
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
@@ -10,12 +14,15 @@ use indexmap::IndexMap;
 use regex::{Regex, RegexBuilder};
 
 quick_error! {
+    /// The error type for parse SQL queries as text
     #[derive(Debug, PartialEq)]
     pub enum ParseError {
-        TagOverwritten(line: usize, tag: String) {
+        /// Tag with same name already exists.
+        TagOverwritten { line: usize, tag: String } {
             display(r#"Tag "{}" overwritten at line: {}"#, tag, line)
         }
-        QueryWithoutTag(line: usize, query: String) {
+        /// Tag for query is not defined.
+        QueryWithoutTag{line: usize, query: String} {
             display(r#"Query without tag (line: {}): "{}""#, line, query)
         }
     }
@@ -28,6 +35,30 @@ enum LineType {
     Query,
 }
 
+/// Parse SQL queries as text to [IndexMap].
+///
+/// Text parsed to [IndexMap], where keys are tags and values are queries.
+/// [IndexMap] used instead [HashMap](https://doc.rust-lang.org/std/collections/struct.HashMap.html)
+/// because with [IndexMap] it's possible execute queries in defined order what can be important on
+/// database scheme creation.
+///
+/// # Example
+///
+/// Content of file with SQL:
+/// ```sql
+/// -- name: select
+/// SELECT * FROM users;
+///
+/// -- name: delete
+/// DELETE FROM users WHERE id = $1;
+/// ```
+///
+/// in Rust:
+/// ```ignore
+/// let queries = rsyesql::parse(include_str!("./queries.sql"));
+/// println!("{}", queries.get("select").unwrap()); // SELECT * FROM users;
+/// println!("{}", queries.get("delete").unwrap()); // DELETE FROM users WHERE id = $1;
+/// ```
 pub fn parse<S: AsRef<str>>(text: S) -> Result<IndexMap<String, String>, ParseError> {
     let mut queries = IndexMap::new();
 
@@ -47,14 +78,20 @@ pub fn parse<S: AsRef<str>>(text: S) -> Result<IndexMap<String, String>, ParseEr
             LineType::Empty => continue,
             LineType::Tag => {
                 if last_type.is_some() && last_type.as_ref().unwrap() == &LineType::Tag {
-                    return Err(ParseError::TagOverwritten(idx + 1, value.to_owned()));
+                    return Err(ParseError::TagOverwritten {
+                        line: idx + 1,
+                        tag: value.to_owned(),
+                    });
                 }
 
                 last_tag = Some(value);
             }
             LineType::Query => {
                 if last_tag.is_none() {
-                    return Err(ParseError::QueryWithoutTag(idx + 1, value.to_owned()));
+                    return Err(ParseError::QueryWithoutTag {
+                        line: idx + 1,
+                        query: value.to_owned(),
+                    });
                 }
 
                 queries
@@ -136,7 +173,10 @@ mod tests {
         let text = "--name: x\n--name: x";
         assert_eq!(
             parse(text).err(),
-            Some(ParseError::TagOverwritten(2, "x".to_owned()))
+            Some(ParseError::TagOverwritten {
+                line: 2,
+                tag: "x".to_owned()
+            })
         );
     }
 
@@ -145,7 +185,10 @@ mod tests {
         let text = "SELECT 1;";
         assert_eq!(
             parse(text).err(),
-            Some(ParseError::QueryWithoutTag(1, "SELECT 1;".to_owned()))
+            Some(ParseError::QueryWithoutTag {
+                line: 1,
+                query: "SELECT 1;".to_owned()
+            })
         );
     }
 

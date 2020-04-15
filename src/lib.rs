@@ -28,13 +28,16 @@ enum LineType {
     Query,
 }
 
-pub fn parse(text: &str) -> Result<IndexMap<String, String>, ParseError> {
+pub fn parse<S: AsRef<str>>(text: S) -> Result<IndexMap<String, String>, ParseError> {
     let mut queries = IndexMap::new();
 
     let mut last_type: Option<LineType> = None;
     let mut last_tag: Option<&str> = None;
 
-    for (idx, line) in remove_multi_line_comments(text).lines().enumerate() {
+    for (idx, line) in remove_multi_line_comments(text.as_ref())
+        .lines()
+        .enumerate()
+    {
         if line.is_empty() {
             continue;
         }
@@ -120,6 +123,13 @@ fn parse_line(mut line: &str) -> (LineType, &str) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn accept_str_string() {
+        let text = "--name: x\nquery";
+        assert!(parse(text).is_ok());
+        assert!(parse(text.to_owned()).is_ok());
+    }
 
     #[test]
     fn error_tag_overwritten() {
